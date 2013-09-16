@@ -16,11 +16,27 @@
 #
 import datetime
 import webapp2
+import jinja2
+import os
+
+from google.appengine.api import users
+template_env = jinja2.Environment( loader=jinja2.FileSystemLoader(os.getcwd()))
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-    	time = '<p>The time is: %s</p>' % datetime.datetime.now()
-        self.response.out.write(time)
+    	cur_time = datetime.datetime.now()
+    	user = users.get_current_user()
+    	login_url = users.create_login_url(self.request.path)
+    	logout_url = users.create_logout_url(self.request.path)
+
+    	template = template_env.get_template('home.html')
+    	context = { 'cur_time': cur_time, 
+    				'user': user ,
+    				'login_url':login_url,
+    				'logout_url': logout_url,
+    			  }
+        self.response.out.write(template.render(context))
+
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler)
